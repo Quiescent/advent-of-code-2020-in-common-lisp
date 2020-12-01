@@ -22,28 +22,27 @@
 
 (defun part-1 ()
   (iter outer
+    (with numbers = (->> (line-numbers 1)
+                      (mapcar #'car)))
     (for i from 0)
-    (for x in (->> (line-numbers 1)
-                (mapcar #'car)))
+    (for x in numbers)
     (iter
       (for j from 0)
-      (for y in (->> (line-numbers 1)
-                  (mapcar #'car)))
+      (for y in numbers)
       (when (and (/= i j) (= (+ x y) 2020))
         (in outer (leave (* x y)))))))
 
 (defun part-2 ()
   (iter outer
+    (with numbers = (->> (line-numbers 1)
+                      (mapcar #'car)))
     (for i from 0)
-    (for x in (->> (line-numbers 1)
-                (mapcar #'car)))
+    (for x in numbers)
     (iter
       (for j from 0)
-      (for y in (->> (line-numbers 1)
-                  (mapcar #'car)))
+      (for y in numbers)
       (iter
         (for k from 0)
-        (for z in (->> (line-numbers 1)
-                    (mapcar #'car)))
+        (for z in numbers)
         (when (and (/= i j k) (= (+ x y z) 2020))
           (in outer (leave (* x y z))))))))
