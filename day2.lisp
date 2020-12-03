@@ -1,15 +1,18 @@
 (eval-when (:execute :compile-toplevel :load-toplevel)
   (ql:quickload '(:iterate
-                  :arrow-macros
+                  :cl-arrows
                   :metabang-bind
                   :cl-ppcre
-                  :trivia))
+                  :trivia
+                  :trivia.ppcre))
   (load "./file.lisp")
   (defpackage :day2
     (:use :common-lisp)
     (:use :file)
     (:use :iterate)
-    (:use :arrow-macros)
+    (:use :cl-arrows)
+    (:use :trivia)
+    (:use :trivia.ppcre)
     (:use :metabang-bind)
     (:use :cl-ppcre))
   (in-package :day2))
@@ -20,27 +23,20 @@
 (defun part-1 ()
   (iter
     (for line in (file-lines 2))
-    (for words = (split " " line))
-    (for range = (->> (car words)
-                   (split "-")
-                   (mapcar #'read-from-string)))
-    (for letter = (-> (cadr words)
-                    (elt 0)))
-    (for letter-count = (count-if (lambda (x) (char-equal x letter)) (caddr words)))
-    (counting (and (>= letter-count (car range))
-                   (<= letter-count (cadr range))))))
+    (match line
+      ((ppcre "([0-9]+)-([0-9]+) (\\w): (\\w+)"
+              (read i) (read j) (vector letter) target)
+       (bind ((letter-count (count-if (lambda (x) (char= x letter)) target)))
+         (counting (and (>= letter-count i)
+                        (<= letter-count j))))))))
 
 (defun part-2 ()
   (iter
     (for line in (file-lines 2))
-    (for words = (split " " line))
-    (for range = (->> (car words)
-                   (split "-")
-                   (mapcar #'read-from-string)
-                   (mapcar #'1-)))
-    (for letter = (-> (cadr words)
-                    (elt 0)))
-    (counting (or (and (eq letter (elt (caddr words) (car range)))
-                       (not (eq letter (elt (caddr words) (cadr range)))))
-                  (and (eq letter (elt (caddr words) (cadr range)))
-                       (not (eq letter (elt (caddr words) (car range)))))))))
+    (match line
+      ((ppcre "([0-9]+)-([0-9]+) (\\w): (\\w+)"
+              (read i) (read j) (vector letter) target)
+       (counting (or (and (eq letter (elt target (1- i)))
+                          (not (eq letter (elt target (1- j)))))
+                     (and (eq letter (elt target (1- j)))
+                          (not (eq letter (elt target (1- i)))))))))))
