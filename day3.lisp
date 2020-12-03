@@ -1,0 +1,83 @@
+(eval-when (:compile-toplevel :execute :load-toplevel)
+  (ql:quickload '(:iterate
+                  :cl-arrows
+                  :metabang-bind
+                  :cl-ppcre
+                  :trivia))
+  (load "./file.lisp")
+  (defpackage :day3
+    (:use :common-lisp)
+    (:use :file)
+    (:use :iterate)
+    (:use :cl-arrows)
+    (:use :metabang-bind)
+    (:use :cl-ppcre)
+    (:use :trivia))
+  (in-package :day3))
+
+#+nil
+(file-lines 3)
+
+(defun part-1 ()
+  (iter outer
+    (with map = (->> (file-lines 3)
+                  (map 'vector #'identity)))
+    (with x = 0)
+    (with y = 0)
+    (while (< y (length map)))
+    (counting (char-equal #\# (elt (elt map y) x)))
+    (incf x 3)
+    (setf x (mod x (length (elt map 0))))
+    (incf y 1)))
+
+(defun part-2 ()
+  (* (iter outer
+       (with map = (->> (file-lines 3)
+                     (map 'vector #'identity)))
+       (with x = 0)
+       (with y = 0)
+       (while (< y (length map)))
+       (counting (char-equal #\# (elt (elt map y) x)))
+       (incf x 1)
+       (setf x (mod x (length (elt map 0))))
+       (incf y 1))
+     (iter outer
+       (with map = (->> (file-lines 3)
+                     (map 'vector #'identity)))
+       (with x = 0)
+       (with y = 0)
+       (while (< y (length map)))
+       (counting (char-equal #\# (elt (elt map y) x)))
+       (incf x 3)
+       (setf x (mod x (length (elt map 0))))
+       (incf y 1))
+     (iter outer
+       (with map = (->> (file-lines 3)
+                     (map 'vector #'identity)))
+       (with x = 0)
+       (with y = 0)
+       (while (< y (length map)))
+       (counting (char-equal #\# (elt (elt map y) x)))
+       (incf x 5)
+       (setf x (mod x (length (elt map 0))))
+       (incf y 1))
+     (iter outer
+       (with map = (->> (file-lines 3)
+                     (map 'vector #'identity)))
+       (with x = 0)
+       (with y = 0)
+       (while (< y (length map)))
+       (counting (char-equal #\# (elt (elt map y) x)))
+       (incf x 7)
+       (setf x (mod x (length (elt map 0))))
+       (incf y 1))
+     (iter outer
+       (with map = (->> (file-lines 3)
+                     (map 'vector #'identity)))
+       (with x = 0)
+       (with y = 0)
+       (while (< y (length map)))
+       (counting (char-equal #\# (elt (elt map y) x)))
+       (incf x 1)
+       (setf x (mod x (length (elt map 0))))
+       (incf y 2))))
