@@ -45,6 +45,27 @@
            (#\R (setf lower (+ lower (floor (- (1+ upper) lower) 2)))))
          (finally (return (+ (* row 8) lower))))))))
 
+(defun seat-id-alt (instructions)
+  (bind ((upper 127)
+         (lower 0)
+         row)
+    (->> (subseq instructions 0 (- (length instructions) 3))
+      (map 'nil
+           (lambda (instruction)
+             (match instruction
+               (#\F (setf upper (- upper (floor (- (1+ upper) lower) 2))))
+               (#\B (setf lower (+ lower (floor (- (1+ upper) lower) 2))))))))
+    (setf row lower)
+    (bind ((upper 7)
+           (lower 0))
+      (->> (subseq instructions (- (length instructions) 3))
+        (map 'nil
+             (lambda (instruction)
+               (match instruction
+                 (#\L (setf upper (- upper (floor (- (1+ upper) lower) 2))))
+                 (#\R (setf lower (+ lower (floor (- (1+ upper) lower) 2))))))))
+      (+ (* row 8) lower))))
+
 (defun part-1 ()
   (iter
     (for line in (file-lines 5))
