@@ -29,10 +29,9 @@
     (with row = nil)
     (for i from 0 below 7)
     (for instruction in-string instructions)
-    (when (char= instruction #\F)
-      (setf upper (- upper (floor (- (1+ upper) lower) 2))))
-    (when (char= instruction #\B)
-      (setf lower (+ lower (floor (- (1+ upper) lower) 2))))
+    (match instruction
+      (#\F (setf upper (- upper (floor (- (1+ upper) lower) 2))))
+      (#\B (setf lower (+ lower (floor (- (1+ upper) lower) 2)))))
     (setf row lower)
     (finally
      (return
@@ -41,10 +40,9 @@
          (with lower = 0)
          (for i from 0 below 3)
          (for instruction in-string (subseq instructions 7))
-         (when (char= instruction #\L)
-           (setf upper (- upper (floor (- (1+ upper) lower) 2))))
-         (when (char= instruction #\R)
-           (setf lower (+ lower (floor (- (1+ upper) lower) 2))))
+         (match instruction
+           (#\L (setf upper (- upper (floor (- (1+ upper) lower) 2))))
+           (#\R (setf lower (+ lower (floor (- (1+ upper) lower) 2)))))
          (finally (return (+ (* row 8) lower))))))))
 
 (defun part-1 ()
@@ -62,8 +60,6 @@
          (for seat in (sort result #'<))
          (for previous-seat previous seat initially 10000)
          (when (= 2 (abs (- seat previous-seat)))
-           (format t "seat: ~a~%" seat)
-           (format t "previous-seat: ~a~%" previous-seat)
            (leave (1- seat))))))))
 
 ;; wrong: 168
