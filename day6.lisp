@@ -36,9 +36,9 @@
     (finally
      (return
        (+ result
-         (iter
-           (for (key value) in-hashtable group)
-           (counting t)))))))
+          (iter
+            (for (key value) in-hashtable group)
+            (counting t)))))))
 
 (defun part-2 ()
   (iter
@@ -46,7 +46,7 @@
     (for line in (file-lines 6))
     (when (string-equal line "")
       (summing (-> (reduce #'intersection group)
-                   (length))
+                 (length))
                :into result)
       (setf group (list))
       (next-iteration))
@@ -54,5 +54,5 @@
     (finally
      (return
        (+ result
-         (-> (reduce #'intersection group)
-           (length)))))))
+          (-> (reduce #'intersection group)
+            (length)))))))
