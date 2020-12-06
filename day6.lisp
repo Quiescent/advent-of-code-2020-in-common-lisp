@@ -21,38 +21,26 @@
 (file-lines 6)
 
 (defun part-1 ()
-  (iter
-    (with group = (make-hash-table :test #'equal))
-    (for line in (file-lines 6))
-    (when (string-equal line "")
-      (summing (iter
-                 (for (key value) in-hashtable group)
-                 (counting t))
-               :into result)
-      (setf group (make-hash-table :test #'equal)))
-    (iter
-      (for char in-string line)
-      (setf (gethash char group) t))
-    (finally
-     (return
-       (+ result
-          (iter
-            (for (key value) in-hashtable group)
-            (counting t)))))))
+  (->> (file-string 6)
+    (split "\\\n\\\n")
+    (remove nil)
+    (mapcar (lambda (group)
+              (->> (split #\Newline group)
+                (mapcar (lambda (line) (map 'list #'identity line)))
+                (reduce #'nunion)
+                (length))))
+    (apply #'+)))
+
+#+nil
+(file-string 6)
 
 (defun part-2 ()
-  (iter
-    (with group = (list))
-    (for line in (file-lines 6))
-    (when (string-equal line "")
-      (summing (-> (reduce #'intersection group)
-                 (length))
-               :into result)
-      (setf group (list))
-      (next-iteration))
-    (push (map 'list #'identity line) group)
-    (finally
-     (return
-       (+ result
-          (-> (reduce #'intersection group)
-            (length)))))))
+  (->> (file-string 6)
+    (split "\\\n\\\n")
+    (remove nil)
+    (mapcar (lambda (group)
+              (->> (split #\Newline group)
+                (mapcar (lambda (line) (map 'list #'identity line)))
+                (reduce #'intersection)
+                (length))))
+    (apply #'+)))
