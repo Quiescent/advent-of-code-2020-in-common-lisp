@@ -8,7 +8,8 @@
     (:use :iter)
     (:use :arrow-macros)
     (:export file-lines)
-    (:export line-numbers))
+    (:export line-numbers)
+    (:export file-string))
 
   (in-package :file))
 
@@ -19,6 +20,14 @@
       (for line = (ignore-errors (read-line f)))
       (while line)
       (collecting line))))
+
+(defun file-string (day)
+  "Produce entire file as a string."
+  (with-open-file (f (format nil "day-~a.in" day))
+    (-<> (make-string (file-length f))
+      (progn
+        (read-sequence <> f)
+        <>))))
 
 (defun line-numbers (day)
   "Produce the numbers on each line of `day-DAY.in' as a list of lists."
