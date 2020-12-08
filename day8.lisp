@@ -53,7 +53,7 @@
 
 (defun part-2 ()
   (iter outer
-    (with program = (parse-program))
+    (with program)
     (setf program (parse-program))
     (for i from 0 below (length program))
     (match (elt program i)
