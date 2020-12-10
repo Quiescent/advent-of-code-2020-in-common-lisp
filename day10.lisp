@@ -51,20 +51,19 @@
     ((= current max)                1)
     ((or (> current max) (null xs)) 0)
     (t
-     (let ((ways-from
-             (->> (remove-if-not (lambda (other) (let ((diff (- other current)))
-                                                     (and (>= diff 1)
-                                                          (<= diff 3))))
-                                 xs)
-               (mapcar (lambda (next)
-                         (let ((pos (position next xs)))
-                           (arrangements (concatenate 'list
-                                                      (subseq xs 0 pos)
-                                                      (subseq xs (1+ pos)))
-                                         next
-                                         max))))
-               (apply #'+))))
-       (setf (gethash current *ways-from*) ways-from)))))
+     (setf (gethash current *ways-from*)
+           (->> (remove-if-not (lambda (other) (let ((diff (- other current)))
+                                                 (and (>= diff 1)
+                                                      (<= diff 3))))
+                               xs)
+             (mapcar (lambda (next)
+                       (let ((pos (position next xs)))
+                         (arrangements (concatenate 'list
+                                                    (subseq xs 0 pos)
+                                                    (subseq xs (1+ pos)))
+                                       next
+                                       max))))
+             (apply #'+))))))
 
 (defun part-2 ()
   (let ((*ways-from* (make-hash-table)))
