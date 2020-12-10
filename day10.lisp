@@ -46,24 +46,25 @@
 (defvar *ways-from*)
 
 (defun arrangements (xs current max)
-  (or (gethash current *ways-from*)
-      (if (= current max)
-          1
-          (if (or (> current max)
-                  (null xs))
-              0
-              (iter
-                (for next in (remove-if-not (lambda (other) (or (= 1 (- other current))
-                                                                (= 2 (- other current))
-                                                                (= 3 (- other current))))
-                                            xs))
-                (for pos = (position next xs))
-                (summing (arrangements (concatenate 'list (subseq xs 0 pos) (subseq xs (1+ pos)))
-                                       next
-                                       max)
-                         :into total)
-                (finally
-                 (return (setf (gethash current *ways-from*) total))))))))
+  (acond
+    ((gethash current *ways-from*)  it)
+    ((= current max)                1)
+    ((or (> current max) (null xs)) 0)
+    (t
+     (let ((ways-from
+             (->> (remove-if-not (lambda (other) (let ((diff (- other current)))
+                                                     (and (>= diff 1)
+                                                          (<= diff 3))))
+                                 xs)
+               (mapcar (lambda (next)
+                         (let ((pos (position next xs)))
+                           (arrangements (concatenate 'list
+                                                      (subseq xs 0 pos)
+                                                      (subseq xs (1+ pos)))
+                                         next
+                                         max))))
+               (apply #'+))))
+       (setf (gethash current *ways-from*) ways-from)))))
 
 (defun part-2 ()
   (let ((*ways-from* (make-hash-table)))
