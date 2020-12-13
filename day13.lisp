@@ -66,3 +66,21 @@
               (finally (return (* times base)))))))))))
 
 ;; Too high: 1683891979003440
+
+;; Used this to discover that the cycle length equals the bus
+;; number(!)
+(defun rounds-until (a-inc b-inc diff)
+  (let ((marked (make-array '(1000000) :initial-element nil)))
+    (iter
+      (for i from 0 by a-inc below 100000)
+      (for cnt from 0)
+      (setf (elt marked i) cnt))
+    (iter
+      (for i from 0 by b-inc below 100000)
+      (with start)
+      (awhen (and (> (- i diff) 0)
+                  (elt marked (- i diff)))
+        (format t "it: ~a~%" it)
+        (if (null start)
+          (setf start it)
+          (leave (- it start)))))))
