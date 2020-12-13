@@ -51,18 +51,17 @@
               (with base = (caar bus-times))
               (for bus-time in (cdr bus-times))
               (for (a-inc . _) = bus-time)
-              (for p-bus-time previous bus-time :initially (car bus-times))
               (collecting bus-time into rules at 'end)
               (for multiplier previous a-inc initially 1)
               (collecting multiplier into multipliers)
-              (iter
-                (for i from times below (* times 10000) by (apply #'lcm multipliers))
-                (for current = (* i base))
-                (when (iter
-                        (for (bus . diff) in rules)
-                        (always (= 0 (mod (+ current diff) bus))))
-                  (setf times i)
-                  (finish)))
+              (setf times
+                    (iter
+                      (for i from times below (* times 10000) by (apply #'lcm multipliers))
+                      (for current = (* i base))
+                      (finding i such-that
+                               (iter
+                                 (for (bus . diff) in rules)
+                                 (always (= 0 (mod (+ current diff) bus)))))))
               (finally (return (* times base)))))))))))
 
 ;; Too high: 1683891979003440
