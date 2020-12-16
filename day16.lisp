@@ -106,14 +106,14 @@
                        (map-into possible-labels
                                  (lambda (other-set) (remove to-remove other-set))
                                  possible-labels)
-                       (finally (return (map 'list #'identity result)))))
+                       (finally (return result))))
           (my-ticket (->> (file-lines-for "./day16-ticket.in")
                        (car)
                        (split ",")
                        (map 'vector #'read-from-string))))
       (iter
         (for i from 0 below 20)
-        (for position in positions)
+        (for position in-vector positions)
         (when (< position 6)
             (multiplying (elt my-ticket i)))))))
 
