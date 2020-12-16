@@ -9,7 +9,8 @@
     (:use :arrow-macros)
     (:export file-lines)
     (:export line-numbers)
-    (:export file-string))
+    (:export file-string)
+    (:export file-lines-for))
 
   (in-package :file))
 
@@ -35,3 +36,11 @@
     (mapcar (lambda (line) (-<> (cl-ppcre:split "[^-0-9]" line)
                              (remove "" <> :test #'string-equal)
                              (mapcar #'read-from-string <>))))))
+
+(defun file-lines-for (file)
+  "Produce the lines in the file `day-DAY.in`."
+  (with-open-file (f file)
+    (iter
+      (for line = (ignore-errors (read-line f)))
+      (while line)
+      (collecting line))))
