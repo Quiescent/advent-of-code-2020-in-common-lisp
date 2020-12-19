@@ -27,23 +27,7 @@
 #+nil
 (file-lines-for "day-19-rules.in")
 
-(defun replace-numbers (tree rules)
-  (cond
-    ((characterp tree) tree)
-    ((listp tree)      (if (> (length tree) 1)
-                           (cons :sequence
-                                 (mapcar (lambda (x) (replace-numbers x rules)) tree))
-                           (replace-numbers (car tree) rules)))
-    ((numberp tree)    (let ((sub-rules (gethash tree rules)))
-                         (if (and (listp sub-rules) (> (length sub-rules) 1))
-                             (cons :alternation
-                                   (mapcar (lambda (x) (replace-numbers x rules))
-                                           (gethash tree rules)))
-                             (replace-numbers (if (listp sub-rules)
-                                                  (car sub-rules)
-                                                  sub-rules)
-                                              rules))))))
-
+;; Not used
 (defun generate-strings (tree rules)
   (cond
     ((null tree)       (list nil))
@@ -72,6 +56,7 @@
                    (in outer (collecting (nconc x (list y))))
                    (in outer (collecting (list x y)))))))))))
 
+;; Not used
 (defun expand-regex (tree rules)
   (progn
     (format t "tree: ~a~%" tree)
@@ -92,6 +77,7 @@
      (t            (->> (mapcar (lambda (x) (expand-regex x rules)) tree)
                      (apply #'concatenate 'string))))))
 
+;; Not used
 (defun part-1-alt ()
   (bind ((rules
           (iter
@@ -121,6 +107,23 @@
                   (member line
                           (all-matches-as-strings regex line)
                           :test #'string-equal))))))
+
+(defun replace-numbers (tree rules)
+  (cond
+    ((characterp tree) tree)
+    ((listp tree)      (if (> (length tree) 1)
+                           (cons :sequence
+                                 (mapcar (lambda (x) (replace-numbers x rules)) tree))
+                           (replace-numbers (car tree) rules)))
+    ((numberp tree)    (let ((sub-rules (gethash tree rules)))
+                         (if (and (listp sub-rules) (> (length sub-rules) 1))
+                             (cons :alternation
+                                   (mapcar (lambda (x) (replace-numbers x rules))
+                                           (gethash tree rules)))
+                             (replace-numbers (if (listp sub-rules)
+                                                  (car sub-rules)
+                                                  sub-rules)
+                                              rules))))))
 
 (defun part-1 ()
   (bind ((rules
@@ -154,15 +157,18 @@
                          (read rule-1))
                   (push (cons rule-1 nil) (gethash rule-number rules))))))
             (finally (return rules))))
-         (tree-0 (replace-numbers (car (gethash 0 rules)) rules))
+         (tree-0 `(:sequence :start-anchor
+                             ,(replace-numbers (car (gethash 0 rules)) rules)
+                             :end-anchor))
          (rule-0 (create-scanner tree-0))
          )
     (->> (file-lines 19)
-      (count-if (lambda (line) (member line (all-matches-as-strings rule-0 line) :test #'string-equal))))))
+      (count-if (lambda (line) (all-matches-as-strings rule-0 line))))))
 
 ;; Wrong: 355
 ;; Wrong: 79
 
+;; Not used
 (defun replace-numbers-2 (tree rules)
   (cond
     ((characterp tree) tree)
@@ -242,38 +248,7 @@
                              (:non-greedy-repetition ,i ,i ,tree-42)
                              (:non-greedy-repetition ,j ,j ,tree-31)
                    :end-anchor))
-                line)))))
-         ;; (awhen 
-         ;;   (let ((rest (subseq line (length (car (print it))))))
-         ;;     (format t "line: ~a~%" line)
-         ;;     (iter
-         ;;       (for i from 0)
-         ;;       (with remaining = rest)
-         ;;       (for matches = (all-matches-as-strings (create-scanner tree-42) remaining))
-         ;;       (for match = (car matches))
-         ;;       (format t "i: ~a~%" i)
-         ;;       (format t "remaining: ~a~%" remaining)
-         ;;       (format t "match: ~a~%" match)
-         ;;       (while (and match (= 0 (search match remaining))))
-         ;;       (setf remaining (subseq remaining (length match)))
-         ;;       (finally
-         ;;        (return
-         ;;          (and (> i 0)
-         ;;               (equal remaining
-         ;;                      (car (all-matches (create-scanner
-         ;;                                         `(:non-greedy-repetition ,i ,i ,tree-31))
-         ;;                                        remaining)))))))))
-         )
-       ;; (lambda (line)
-       ;;            (member
-       ;;             line
-       ;;             (all-matches-as-strings
-       ;;              (create-scanner `(:sequence (:greedy-repetition 1 nil ,tree-42)
-       ;;                                          (:greedy-repetition 1 nil ,tree-42)
-       ;;                                          (:greedy-repetition 1 nil ,tree-31)))
-       ;;              line)
-       ;;             :test #'string-equal))
-       ))))
+                line))))))))))
 
 ;; Wrong: 265
 ;; Wrong: 313
