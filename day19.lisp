@@ -163,7 +163,7 @@
          (rule-0 (create-scanner tree-0))
          )
     (->> (file-lines 19)
-      (count-if (lambda (line) (all-matches-as-strings rule-0 line))))))
+      (count-if (lambda (line) (all-matches rule-0 line))))))
 
 ;; Wrong: 355
 ;; Wrong: 79
@@ -242,7 +242,7 @@
             (iter
               (for j from (1- i) downto 1)
               (thereis
-               (all-matches-as-strings
+               (all-matches
                 (create-scanner
                  `(:sequence :start-anchor
                              (:non-greedy-repetition ,i ,i ,tree-42)
