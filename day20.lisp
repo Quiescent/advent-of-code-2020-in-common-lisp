@@ -26,22 +26,26 @@
 
 (defun up (tile)
   (match tile
-    ((list* _ (list up _ _ _)) up)))
+    ((list _ _ _ _ (list up _ _ _) _) up)))
 
 (defun right (tile)
   (match tile
-    ((list* _ (list _ right _ _)) right)))
+    ((list _ _ _ _ (list _ right _ _) _) right)))
 
 (defun down (tile)
   (match tile
-    ((list* _ (list _ _ down _)) down)))
+    ((list _ _ _ _ (list _ _ down _) _) down)))
 
 (defun left (tile)
   (match tile
-    ((list* _ (list _ _ _ left)) left)))
+    ((list _ _ _ _ (list _ _ _ left) _) left)))
+
+(defun raw-tile (tile)
+  (match tile
+    ((list _ _ _ _ (list _ _ _ _) raw-tile) raw-tile)))
 
 (defun works (tile x y grid)
-  (bind (((id . (u r d l)) tile)
+  (bind (((id rot flip-vert flip-hor (u r d l) raw-tile) tile)
          (up-tile          (gethash (cons x (1- y)) grid))
          (right-tile       (gethash (cons (1+ x) y) grid))
          (down-tile        (gethash (cons x (1+ y)) grid))
@@ -67,7 +71,7 @@
                 (string-equal d (up down-tile)))
             (or (null left-tile)
                 (string-equal l (right left-tile))))
-        (push (cons id (list u r d l)) orientations))
+        (push (list id 90 nil nil (list u r d l) raw-tile) orientations))
       ;; Rot: 180 (Hack!  Rotate the block rotated by 90! XD)
       (bind (((u r d l) (list r (reverse d) l (reverse u))))
         (when (and (or (null up-tile)
@@ -78,7 +82,7 @@
                   (string-equal d (up down-tile)))
               (or (null left-tile)
                   (string-equal l (right left-tile))))
-          (push (cons id (list u r d l)) orientations))
+          (push (list id 180 nil nil (list u r d l) raw-tile) orientations))
         ;; Rot: 270 (Hack!  Rotate the block rotated by 180! XD)
         (bind (((u r d l) (list r (reverse d) l (reverse u))))
           (when (and (or (null up-tile)
@@ -89,7 +93,7 @@
                     (string-equal d (up down-tile)))
                 (or (null left-tile)
                     (string-equal l (right left-tile))))
-            (push (cons id (list u r d l)) orientations)))))
+            (push (list id 270 nil nil (list u r d l) raw-tile) orientations)))))
     ;; Flip over vertical axis
     (bind (((u r d l) (list (reverse u) l (reverse d) r)))
       (when (and (or (null up-tile)
@@ -100,7 +104,7 @@
                 (string-equal d (up down-tile)))
             (or (null left-tile)
                 (string-equal l (right left-tile))))
-        (push (cons id (list u r d l)) orientations))
+        (push (list id 0 t nil (list u r d l) raw-tile) orientations))
       ;; Then do rotations...
       ;; Rot: 90
       (bind (((u r d l) (list r (reverse d) l (reverse u))))
@@ -112,7 +116,7 @@
                   (string-equal d (up down-tile)))
               (or (null left-tile)
                   (string-equal l (right left-tile))))
-          (push (cons id (list u r d l)) orientations))
+          (push (list id 90 t nil (list u r d l) raw-tile) orientations))
         ;; Rot: 180 (Hack!  Rotate the block rotated by 90! XD)
         (bind (((u r d l) (list r (reverse d) l (reverse u))))
           (when (and (or (null up-tile)
@@ -123,7 +127,7 @@
                     (string-equal d (up down-tile)))
                 (or (null left-tile)
                     (string-equal l (right left-tile))))
-            (push (cons id (list u r d l)) orientations))
+            (push (list id 180 t nil (list u r d l) raw-tile) orientations))
           ;; Rot: 270 (Hack!  Rotate the block rotated by 180! XD)
           (bind (((u r d l) (list r (reverse d) l (reverse u))))
             (when (and (or (null up-tile)
@@ -134,7 +138,7 @@
                       (string-equal d (up down-tile)))
                   (or (null left-tile)
                       (string-equal l (right left-tile))))
-              (push (cons id (list u r d l)) orientations))))))
+              (push (list id 270 t nil (list u r d l) raw-tile) orientations))))))
     ;; Flip over horizontal axis
     (bind (((u r d l) (list d (reverse r) u (reverse l))))
       (when (and (or (null up-tile)
@@ -145,7 +149,7 @@
                 (string-equal d (up down-tile)))
             (or (null left-tile)
                 (string-equal l (right left-tile))))
-        (push (cons id (list u r d l)) orientations))
+        (push (list id 0 nil t (list u r d l) raw-tile) orientations))
       ;; Then do rotations...
       ;; Rot: 90
       (bind (((u r d l) (list r (reverse d) l (reverse u))))
@@ -157,7 +161,7 @@
                   (string-equal d (up down-tile)))
               (or (null left-tile)
                   (string-equal l (right left-tile))))
-          (push (cons id (list u r d l)) orientations))
+          (push (list id 90 nil t (list u r d l) raw-tile) orientations))
         ;; Rot: 180 (Hack!  Rotate the block rotated by 90! XD)
         (bind (((u r d l) (list r (reverse d) l (reverse u))))
           (when (and (or (null up-tile)
@@ -168,7 +172,7 @@
                     (string-equal d (up down-tile)))
                 (or (null left-tile)
                     (string-equal l (right left-tile))))
-            (push (cons id (list u r d l)) orientations))
+            (push (list id 180 nil t (list u r d l) raw-tile) orientations))
           ;; Rot: 270 (Hack!  Rotate the block rotated by 180! XD)
           (bind (((u r d l) (list r (reverse d) l (reverse u))))
             (when (and (or (null up-tile)
@@ -179,7 +183,7 @@
                       (string-equal d (up down-tile)))
                   (or (null left-tile)
                       (string-equal l (right left-tile))))
-              (push (cons id (list u r d l)) orientations))))))
+              (push (list id 270 nil t (list u r d l) raw-tile) orientations))))))
     orientations))
 
 (defun arrange-tiles (tiles grid spots-taken)
@@ -229,10 +233,13 @@
                   (mapcar (lambda (raw-tile)
                             (match (split (create-scanner #\Newline) raw-tile)
                               ((list* id-row rest)
-                               (cons (-<> (split "[^0-9]" id-row)
+                               (list (-<> (split "[^0-9]" id-row)
                                        (remove "" <> :test #'string-equal)
                                        (car <>)
                                        (read-from-string <>))
+                                     0
+                                     nil
+                                     nil
                                      (bind ((blocks (map 'vector #'identity rest))
                                             (x-dim  (length (aref blocks 0)))
                                             (top    (aref blocks 0))
@@ -245,7 +252,8 @@
                                                       (for y from 0 below (length blocks))
                                                       (collecting (-> (aref blocks y) (aref (1- x-dim)))
                                                                   :result-type 'string))))
-                                       (list top r-col bottom l-col)))))))))
+                                       (list top r-col bottom l-col))
+                                     (map 'vector #'identity rest))))))))
          (grid (make-hash-table :test #'equal)))
     (setf (gethash (cons 0 0) grid) (car tiles))
     (arrange-tiles (cdr tiles)
@@ -264,16 +272,56 @@
             (car (gethash (cons min-x max-y) grid))
             (car (gethash (cons max-x max-y) grid))))))))
 
+(defun transpose (matrix)
+  (bind ((x-dim (length (aref matrix 0)))
+         (y-dim (length matrix))
+         (new-matrix (iter
+                       (for y from 0 below x-dim)
+                       (collecting
+                        (iter
+                          (for x from 0 below y-dim)
+                          (collecting #\. :result-type 'string))
+                        :result-type 'vector))))
+    (iter
+      (for row in-vector matrix)
+      (for x from 0)
+      (iter
+        (for value in-string row)
+        (for y from 0)
+        (setf (-> (aref new-matrix y) (aref x)) value))
+      (finally (return new-matrix)))))
+
+#+nil
+(transpose (vector "12345" "67890"))
+
+(defun rot-90 (block)
+  (-> (map 'vector #'reverse block)
+    (transpose)))
+
+(defun rot-180 (block)
+  (-> (rot-90 block)
+    (rot-90)))
+
+(defun rot-270 (block)
+  (-> (rot-180 block)
+    (rot-90)))
+
+#+nil
+(rot-90 (vector "123" "456" "789"))
+
 (defun part-2 ()
   (bind ((tiles (->> (file-string 20)
                   (split (create-scanner '(:sequence #\Newline #\Newline)))
                   (mapcar (lambda (raw-tile)
                             (match (split (create-scanner #\Newline) raw-tile)
                               ((list* id-row rest)
-                               (cons (-<> (split "[^0-9]" id-row)
+                               (list (-<> (split "[^0-9]" id-row)
                                        (remove "" <> :test #'string-equal)
                                        (car <>)
                                        (read-from-string <>))
+                                     0
+                                     nil
+                                     nil
                                      (bind ((blocks (map 'vector #'identity rest))
                                             (x-dim  (length (aref blocks 0)))
                                             (top    (aref blocks 0))
@@ -286,10 +334,258 @@
                                                       (for y from 0 below (length blocks))
                                                       (collecting (-> (aref blocks y) (aref (1- x-dim)))
                                                                   :result-type 'string))))
-                                       (list top r-col bottom l-col)))))))))
+                                       (list top r-col bottom l-col))
+                                     (map 'vector #'identity rest))))))))
          (grid (make-hash-table :test #'equal)))
     (setf (gethash (cons 0 0) grid) (car tiles))
     (arrange-tiles (cdr tiles)
                    grid
                    (list (cons 0 0)))
-    ))
+    (iter
+      (for (key value) in-hashtable grid)
+      (format t "(list key value): ~a~%" (list key value))
+      (minimizing (car key) into min-x)
+      (maximizing (car key) into max-x)
+      (minimizing (cdr key) into min-y)
+      (maximizing (cdr key) into max-y)
+      (finally
+       (return
+         (bind ((x-count      (1+ (- max-y min-y)))
+                (x-dim        (* 8 x-count))
+                (y-count      (1+ (- max-x min-x)))
+                (y-dim        (* 8 y-count))
+                (painted-grid (iter
+                                (for x from 0 below x-dim)
+                                (collecting
+                                 (iter
+                                   (for y from 0 below y-dim)
+                                   (collecting #\. :result-type 'string))
+                                 :result-type 'vector))))
+           (format t "(list min-x max-x min-y max-y): ~a~%" (list min-x max-x min-y max-y))
+           (iter
+             (for x from 0 below x-dim)
+             (multiple-value-bind (low-res-x inner-x) (floor x 8)
+               (iter
+                 (for y from 0 below y-dim)
+                 (multiple-value-bind (low-res-y inner-y) (floor y 8)
+                   (for (id rot flip-vert flip-hor rows raw-tile) =
+                        (gethash (cons (+ low-res-x min-x) (+ low-res-y min-y)) grid))
+                   (for working-block = raw-tile)
+                   (when flip-vert
+                     (setf working-block
+                           (map 'vector #'reverse working-block)))
+                   (when flip-hor
+                     (setf working-block
+                           (reverse working-block)))
+                   (when (= rot 90)
+                     (setf working-block
+                           (rot-90 working-block)))
+                   (when (= rot 180)
+                     (setf working-block
+                           (rot-180 working-block)))
+                   (when (= rot 270)
+                     (setf working-block
+                           (rot-270 working-block)))
+                   (for block = working-block)
+                   (setf (-> (aref painted-grid y) (aref x))
+                         (-> (aref block (1+ inner-y)) (aref (1+ inner-x))))))))
+
+           ;; 21 monsters found with following code...
+           ;;                   # 
+           ;; #    ##    ##    ###
+           ;;  #  #  #  #  #  #
+           ;; 15 hashes in a sea monster...
+           (-
+            (iter
+              (for row in-vector painted-grid)
+              (summing
+               (iter
+                 (for value in-string row)
+                 (counting (char= value #\#)))))
+            (* 15 21))
+
+           ;; (format t "top-left: ~a~%" (gethash (cons min-x min-y) grid))
+           ;; (iter
+           ;;   (for row in-vector (raw-tile (gethash (cons min-x min-y) grid)))
+           ;;   (format t "~a~%" row))
+           ;; (iter
+           ;;   (for row in-vector painted-grid)
+           ;;   (format t "~a~%" row))
+           ;; ;; Standard orientation
+           ;; (format t "Standard orientation~%")
+           ;; (iter
+           ;;   (for row in-vector painted-grid)
+           ;;   (for y from 0)
+           ;;   (awhen (all-matches "#....##....##....###" row)
+           ;;     (format t "found body~%")
+           ;;     (when (and (>= y 1)
+           ;;                (all-matches "^..................#."
+           ;;                             (subseq (aref painted-grid (1- y)) (car it)))
+           ;;                (all-matches "^.#..#..#..#..#..#..."
+           ;;                             (subseq (aref painted-grid (1+ y)) (car it))))
+           ;;       (format t "it: ~a~%" it))))
+           ;; ;; Flip over horizontal axis
+           ;; (format t "Flip over horizontal axis~%")
+           ;; (iter
+           ;;   (for row in-vector (reverse painted-grid))
+           ;;   (for y from 0)
+           ;;   (awhen (all-matches "#....##....##....###" row)
+           ;;     (format t "found body~%")
+           ;;     (when (and (>= y 1)
+           ;;                (all-matches "^..................#."
+           ;;                             (subseq (aref painted-grid (1- y)) (car it)))
+           ;;                (all-matches "^.#..#..#..#..#..#..."
+           ;;                             (subseq (aref painted-grid (1+ y)) (car it))))
+           ;;       (format t "it: ~a~%" it))))
+           ;; ;; Flip over vertical axis
+           ;; (format t "Flip over vertical axis~%")
+           ;; (iter
+           ;;   (for row in-vector (map 'vector #'reverse painted-grid))
+           ;;   (for y from 0)
+           ;;   (awhen (all-matches "#....##....##....###" row)
+           ;;     (format t "found body~%")
+           ;;     (when (and (>= y 1)
+           ;;                (all-matches "^..................#."
+           ;;                             (subseq (aref painted-grid (1- y)) (car it)))
+           ;;                (all-matches "^.#..#..#..#..#..#..."
+           ;;                             (subseq (aref painted-grid (1+ y)) (car it))))
+           ;;       (format t "it: ~a~%" it))))
+           ;; ;; Rotate 90
+           ;; (format t "Rotate 90~%")
+           ;; (iter
+           ;;   (with transformed = (rot-90 painted-grid))
+           ;;   (for row in-vector transformed)
+           ;;   (for y from 0)
+           ;;   (awhen (all-matches "#....##....##....###" row)
+           ;;     (format t "found body~%")
+           ;;     (when (and (>= y 1)
+           ;;                (all-matches "^..................#."
+           ;;                             (subseq (aref transformed (1- y)) (car it)))
+           ;;                (all-matches "^.#..#..#..#..#..#..."
+           ;;                             (subseq (aref transformed (1+ y)) (car it))))
+           ;;       (format t "it: ~a~%" it))))
+           ;; ;; Rotate 180
+           ;; (format t "Rotate 180~%")
+           ;; (iter
+           ;;   (with transformed = (rot-180 painted-grid))
+           ;;   (for row in-vector transformed)
+           ;;   (for y from 0)
+           ;;   (awhen (all-matches "#....##....##....###" row)
+           ;;     (format t "found body~%")
+           ;;     (when (and (>= y 1)
+           ;;                (all-matches "^..................#."
+           ;;                             (subseq (aref transformed (1- y)) (car it)))
+           ;;                (all-matches "^.#..#..#..#..#..#..."
+           ;;                             (subseq (aref transformed (1+ y)) (car it))))
+           ;;       (format t "it: ~a~%" it))))
+           ;; ;; Rotate 270
+           ;; (format t "Rotate 270~%")
+           ;; (iter
+           ;;   (for row in-vector (rot-270 painted-grid))
+           ;;   (format t "~a~%" row))
+           ;; (iter
+           ;;   (with transformed = (rot-270 painted-grid))
+           ;;   (for row in-vector transformed)
+           ;;   (for y from 0)
+           ;;   (awhen (all-matches "#....##....##....###" row)
+           ;;     (format t "found body~%")
+           ;;     (when (and (>= y 1)
+           ;;                (all-matches "^..................#."
+           ;;                             (subseq (aref transformed (1- y)) (car it)))
+           ;;                (all-matches "^.#..#..#..#..#..#..."
+           ;;                             (subseq (aref transformed (1+ y)) (car it))))
+           ;;       (format t "it: ~a~%" it))))
+           ;; ;; Rotate 90 & flip over vertical axis
+           ;; (format t "Rotate 90~%")
+           ;; (iter
+           ;;   (with transformed = (->> (rot-90 painted-grid)
+           ;;                         (map 'vector #'reverse)))
+           ;;   (for row in-vector transformed)
+           ;;   (for y from 0)
+           ;;   (awhen (all-matches "#....##....##....###" row)
+           ;;     (format t "found body~%")
+           ;;     (when (and (>= y 1)
+           ;;                (all-matches "^..................#."
+           ;;                             (subseq (aref transformed (1- y)) (car it)))
+           ;;                (all-matches "^.#..#..#..#..#..#..."
+           ;;                             (subseq (aref transformed (1+ y)) (car it))))
+           ;;       (format t "it: ~a~%" it))))
+           ;; ;; Rotate 180 & flip over vertical axis
+           ;; (format t "Rotate 180~%")
+           ;; (iter
+           ;;   (with transformed = (->> (rot-180 painted-grid)
+           ;;                        (map 'vector #'reverse)))
+           ;;   (for row in-vector transformed)
+           ;;   (for y from 0)
+           ;;   (awhen (all-matches "#....##....##....###" row)
+           ;;     (format t "found body~%")
+           ;;     (when (and (>= y 1)
+           ;;                (all-matches "^..................#."
+           ;;                             (subseq (aref transformed (1- y)) (car it)))
+           ;;                (all-matches "^.#..#..#..#..#..#..."
+           ;;                             (subseq (aref transformed (1+ y)) (car it))))
+           ;;       (format t "it: ~a~%" it))))
+           ;; ;; Rotate 270 & flip over vertical axis
+           ;; (format t "Rotate 270~%")
+           ;; (iter
+           ;;   (with transformed = (->> (rot-270 painted-grid)
+           ;;                        (map 'vector #'reverse)))
+           ;;   (for row in-vector transformed)
+           ;;   (for y from 0)
+           ;;   (awhen (all-matches "#....##....##....###" row)
+           ;;     (format t "found body~%")
+           ;;     (when (and (>= y 1)
+           ;;                (all-matches "^..................#."
+           ;;                             (subseq (aref transformed (1- y)) (car it)))
+           ;;                (all-matches "^.#..#..#..#..#..#..."
+           ;;                             (subseq (aref transformed (1+ y)) (car it))))
+           ;;       (format t "it: ~a~%" it))))
+           ;; ;; Rotate 90 & flip over horizontal axis
+           ;; (format t "Rotate 90~%")
+           ;; (iter
+           ;;   (with transformed = (->> (rot-90 painted-grid)
+           ;;                        (reverse)))
+           ;;   (for row in-vector transformed)
+           ;;   (for y from 0)
+           ;;   (awhen (all-matches "#....##....##....###" row)
+           ;;     (format t "found body~%")
+           ;;     (when (and (>= y 1)
+           ;;                (all-matches "^..................#."
+           ;;                             (subseq (aref transformed (1- y)) (car it)))
+           ;;                (all-matches "^.#..#..#..#..#..#..."
+           ;;                             (subseq (aref transformed (1+ y)) (car it))))
+           ;;       (format t "it: ~a~%" it))))
+           ;; ;; Rotate 180 & flip over horizontal axis
+           ;; (format t "Rotate 180~%")
+           ;; (iter
+           ;;   (with transformed = (->> (rot-180 painted-grid)
+           ;;                        (reverse)))
+           ;;   (for row in-vector transformed)
+           ;;   (for y from 0)
+           ;;   (awhen (all-matches "#....##....##....###" row)
+           ;;     (format t "found body~%")
+           ;;     (when (and (>= y 1)
+           ;;                (all-matches "^..................#."
+           ;;                             (subseq (aref transformed (1- y)) (car it)))
+           ;;                (all-matches "^.#..#..#..#..#..#..."
+           ;;                             (subseq (aref transformed (1+ y)) (car it))))
+           ;;       (format t "it: ~a~%" it))))
+           ;; ;; Rotate 270 & flip over horizontal axis
+           ;; (format t "Rotate 270~%")
+           ;; (iter
+           ;;   (with transformed = (->> (rot-270 painted-grid)
+           ;;                        (reverse)))
+           ;;   (for row in-vector transformed)
+           ;;   (for y from 0)
+           ;;   (awhen (all-matches "#....##....##....###" row)
+           ;;     (format t "found body~%")
+           ;;     (when (and (>= y 1)
+           ;;                (all-matches "^..................#."
+           ;;                             (subseq (aref transformed (1- y)) (car it)))
+           ;;                (all-matches "^.#..#..#..#..#..#..."
+           ;;                             (subseq (aref transformed (1+ y)) (car it))))
+           ;;       (format t "it: ~a~%" it))))
+           ))))))
+
+;; Too high... 1757
+;; Too high... 1742
