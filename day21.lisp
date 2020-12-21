@@ -24,42 +24,90 @@
 #+nil
 (file-lines 21)
 
-(defun assign (assignments directory)
+(defun assign (assigned-allergens assigned-ingredients directory)
   (match directory
-    (nil assignments)
+    (nil assigned-ingredients)
     ((list* (list allergen ingredients) rest)
      (iter
-       (for xs on ingredients)
-       (for ingredient = (car xs))
-       (for assigned = (assoc allergen assignments))
-       (for ingredient-taken = (find ingredient assignments :key #'cdr))
-       (when (or (and (not ingredient-taken)
-                      (not assigned))
-                 (and (eq (car assigned) allergen)
-                      (eq (cdr assigned) ingredient)))
-         (thereis (assign (cons (cons allergen ingredient) assignments) rest)))))))
+       (for ingredient in ingredients)
+       (for assigned-ingredient = (gethash allergen   assigned-allergens))
+       (for assigned-allergen   = (gethash ingredient assigned-ingredients))
+       (when (or (and (not assigned-ingredient)
+                      (not assigned-allergen))
+                 (and (eq assigned-allergen allergen)
+                      (eq assigned-ingredient ingredient)))
+         (setf (gethash allergen   assigned-allergens)   ingredient)
+         (setf (gethash ingredient assigned-ingredients) allergen)
+         (thereis (assign assigned-allergens assigned-ingredients rest))
+         (remhash allergen   assigned-allergens)
+         (remhash ingredient assigned-ingredients))))))
 
 (defun part-1 ()
   (bind (all-instances-ingredients
-         (directory (->> (file-lines 21)
-                      (mapcar
-                       (lambda (line)
-                         (match line
-                           ((ppcre "([^()]*) \\(contains (.*)\\)"
-                                   ingredients allergens)
-                            (bind ((is (->> (split " " ingredients)
-                                         (mapcar #'read-from-string)))
-                                   (as (->> (split ", " allergens)
-                                         (mapcar #'read-from-string))))
-                              (setf all-instances-ingredients (append all-instances-ingredients is))
-                              (iter
-                                (for allergen in as)
-                                (collecting (list allergen is))))))))
-                      (apply #'concatenate 'list)))
-         (all-ingredients (->> (mapcar #'cadr directory)
-                            (reduce #'union)))
-         (safe-ingredients (->> (assign (list) directory)
-                             (mapcar #'cdr)
-                             (set-difference all-ingredients))))
-    (count-if (lambda (ingredient) (member ingredient safe-ingredients))
-              all-instances-ingredients)))
+         (directory (make-hash-table)))
+    (->> (file-lines 21)
+      (map
+       'nil
+       (lambda (line)
+         (match line
+           ((ppcre "([^()]*) \\(contains (.*)\\)"
+                   ingredients allergens)
+            (bind ((is (->> (split " " ingredients)
+                         (mapcar #'read-from-string)))
+                   (as (->> (split ", " allergens)
+                         (mapcar #'read-from-string))))
+              (setf all-instances-ingredients (append all-instances-ingredients is))
+              (iter
+                (for allergen in as)
+                (aif (gethash allergen directory)
+                     (setf (gethash allergen directory) (intersection is it))
+                     (setf (gethash allergen directory) is)))))))))
+    (bind ((safe-ingredients (->> (iter
+                                    (for (key value) in-hashtable directory)
+                                    (unioning value))
+                               (set-difference all-instances-ingredients)
+                               (remove-duplicates))))
+     (count-if (lambda (ingredient) (member ingredient safe-ingredients))
+               all-instances-ingredients))))
+
+(defun part-2 ()
+  (bind (all-instances-ingredients
+         (directory (make-hash-table)))
+    (->> (file-lines 21)
+      (map
+       'nil
+       (lambda (line)
+         (match line
+           ((ppcre "([^()]*) \\(contains (.*)\\)"
+                   ingredients allergens)
+            (bind ((is (->> (split " " ingredients)
+                         (mapcar #'read-from-string)))
+                   (as (->> (split ", " allergens)
+                         (mapcar #'read-from-string))))
+              (setf all-instances-ingredients (append all-instances-ingredients is))
+              (iter
+                (for allergen in as)
+                (aif (gethash allergen directory)
+                     (setf (gethash allergen directory) (intersection is it))
+                     (setf (gethash allergen directory) is)))))))))
+    (iter
+      (with assignments = (iter
+                            (for (key value) in-hashtable directory)
+                            (collecting (cons key value))))
+      (for next-assignment = (find 2 assignments :key #'length))
+      (collecting next-assignment into result)
+      (map-into assignments
+                (lambda (assignment)
+                  (remove (cadr next-assignment) assignment))
+                assignments)
+      (while (some (lambda (assignment) (>= (length assignment) 2)) assignments))
+      (finally
+       (return
+         (format nil "~{~a~^,~}"
+                 (->> (sort result #'string-lessp :key (lambda (item) (-> (car item) (symbol-name))))
+                   (mapcar (lambda (item) (->> (cadr item)
+                                       (symbol-name)
+                                       (string-downcase)))))))))))
+
+;; Wrong: jmvxx,lkv,kfgln,pqqks,pqrvc
+
