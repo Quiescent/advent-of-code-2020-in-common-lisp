@@ -55,8 +55,6 @@
 
 (defvar *seen-previously*)
 
-(defvar *wins-from*)
-
 (defun to-key (player-1 winnings-1 player-2 winnings-2)
   (bind ((result 0)
          (power 0))
@@ -83,7 +81,7 @@
 
 (defun recursive-combat (depth player-1 winnings-1 player-2 winnings-2)
   (cond
-    ((gethash (to-key player-1 winnings-1 player-2 winnings-2) *seen-previously*)
+    ((gethash (list player-1 winnings-1 player-2 winnings-2) *seen-previously*)
      (if (= 0 depth)
          (score player-1)
          'player-1))
@@ -98,23 +96,29 @@
                      (append player-1 (reverse winnings-1)))))
          (if (null player-1) 'player-2 'player-1)))
     ((and (null player-1) (not (null winnings-1)))
-     (recursive-combat depth (reverse winnings-1) nil player-2 winnings-2))
+     (recursive-combat depth
+                       (reverse winnings-1)
+                       nil
+                       player-2
+                       winnings-2))
     ((and (null player-2) (not (null winnings-2)))
-     (recursive-combat depth player-1 winnings-1 (reverse winnings-2) nil))
+     (recursive-combat depth
+                       player-1
+                       winnings-1
+                       (reverse winnings-2)
+                       nil))
     (t (progn
-         (setf (gethash (to-key player-1 winnings-1 player-2 winnings-2) *seen-previously*) t)
+         (setf (gethash (list player-1 winnings-1 player-2 winnings-2) *seen-previously*) t)
          (bind ((a (pop player-1))
                 (b (pop player-2)))
            (if (and (>= (+ (length player-1) (length winnings-1)) a)
                     (>= (+ (length player-2) (length winnings-2)) b))
                (bind ((sub-a (subseq (append player-1 (reverse winnings-1)) 0 a))
                       (sub-b (subseq (append player-2 (reverse winnings-2)) 0 b)))
-                 (match (or (gethash (cons sub-a sub-b) *wins-from*)
-                            (setf (gethash (cons sub-a sub-b) *wins-from*)
-                                  (bind ((*seen-previously* (make-hash-table :test #'equal)))
-                                    (recursive-combat (1+ depth) sub-a nil sub-b nil))))
+                 (match (bind ((*seen-previously* (make-hash-table :test #'equal)))
+                          (recursive-combat (1+ depth) sub-a nil sub-b nil))
                    ('player-1 (recursive-combat depth
-                                                (append player-1)
+                                                player-1
                                                 (cons b (cons a winnings-1))
                                                 player-2
                                                 winnings-2))
@@ -135,6 +139,53 @@
                                      player-2
                                      (cons a (cons b winnings-2))))))))))
 
+(defun recursive-combat-alt (depth player-1 player-2 seen)
+  (iter
+    (with winnings-1)
+    (with winnings-2)
+    (format t "depth: ~a~%" depth)
+    (format t "player-1: ~a~%" player-1)
+    (format t "player-2: ~a~%" player-2)
+    (format t "winnings-1: ~a~%" winnings-1)
+    (format t "winnings-2: ~a~%" winnings-2)
+    (when (gethash (list player-1 winnings-1 player-2 winnings-2) seen)
+      (if (> depth 0)
+          (leave (score (append player-1 (reverse winnings-1))))
+          (leave 'player-1)))
+    (setf (gethash (list player-1 winnings-1 player-2 winnings-2) seen) t)
+    ;; (when (and (null player-1) (not (null winnings-1)))
+    ;;   (setf player-1 (reverse winnings-1))
+    ;;   (setf winnings-1 nil))
+    ;; (when (and (null player-2) (not (null winnings-2)))
+    ;;   (setf player-2 (reverse winnings-2))
+    ;;   (setf winnings-2 nil))
+    (when (null player-1)
+      (leave (if (> depth 0)
+                 'player-2
+                 (score (append player-2 (reverse winnings-2))))))
+    (when (null player-2)
+      (leave (if (> depth 0)
+                 'player-1
+                 (score (append player-1 (reverse winnings-1))))))
+    (for a = (pop player-1))
+    (for b = (pop player-2))
+    (if (and (>= (+ (length player-1) (length winnings-1)) a)
+             (>= (+ (length player-2) (length winnings-2)) b))
+        (match (recursive-combat-alt (1+ depth)
+                                     (subseq (append player-1 (reverse winnings-1)) 0 a)
+                                     (subseq (append player-2 (reverse winnings-2)) 0 b)
+                                     (make-hash-table :test #'equal))
+          ('player-1 ;; (setf winnings-1 (cons b (cons a winnings-1)))
+                     (setf player-1 (append player-1 (list a b))))
+          ('player-2 ;; (setf winnings-2 (cons a (cons b winnings-2)))
+                     (setf player-2 (append player-2 (list b a)))))
+        (if (> a b)
+            ;; (setf winnings-1 (cons b (cons a winnings-1)))
+            (setf player-1 (append player-1 (list a b)))
+            ;; (setf winnings-2 (cons a (cons b winnings-2)))
+            (setf player-2 (append player-2 (list b a)))
+            ))))
+
 (defun part-2 ()
   (match (->> (file-string 22)
            (split (create-scanner '(:sequence #\Newline #\Newline)))
@@ -144,9 +195,8 @@
                        (cdr <>)
                        (mapcar #'read-from-string <>)))))
     ((list player-1 player-2)
-     (bind ((*seen-previously* (make-hash-table :test #'equal))
-            (*wins-from*       (make-hash-table :test #'equal)))
-       (recursive-combat 0 player-1 nil player-2 nil)))))
+     (recursive-combat-alt 0 player-1 player-2 (make-hash-table :test #'equal)))))
 
+;; Too high: 33600
 ;; Too high: 32992
-
+;; Too low: 31945
