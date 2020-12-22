@@ -140,10 +140,8 @@
                                      player-2
                                      (cons a (cons b winnings-2))))))))))
 
-(defun recursive-combat-alt (depth player-1-in player-2-in seen)
+(defun recursive-combat-alt (depth player-1 player-2 seen)
   (iter
-    (with player-1 = player-1-in)
-    (with player-2 = player-2-in)
     (when (gethash (list player-1 player-2) seen)
       (if (> depth 0)
           (leave 'player-1)
