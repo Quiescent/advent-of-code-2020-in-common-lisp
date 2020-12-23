@@ -37,7 +37,6 @@
                         (setf dest (mod dest len))
                         (while (or (= dest current-cup) (member dest (list next-1 next-2 next-3))))
                         (finally (return dest)))))
-    ;; Could the destination be the current cup?
     (setf (gethash current-cup cups) next-4)
     (setf (gethash next-3 cups)      (gethash destination cups))
     (setf (gethash destination cups) next-1)
@@ -60,14 +59,7 @@
     (iter
       (with current-cup = 5)
       (repeat 100)
-      (format t "~a~%" (iter
-                         (with start = current-cup)
-                         (for next = (gethash start cups))
-                         (collecting (-> (format nil "~a" (1+ next)) (aref 0)) :result-type 'string)
-                         (while (/= next current-cup))
-                         (setf start next)))
       (setf current-cup (make-move current-cup cups len))
-      (format t "current-cup: ~a~%" current-cup)
       (finally
        (return
          (iter
@@ -93,7 +85,6 @@
                         (setf dest (mod dest len))
                         (while (or (= dest current-cup) (member dest (list next-1 next-2 next-3))))
                         (finally (return dest)))))
-    ;; Could the destination be the current cup?
     (setf (aref cups current-cup) next-4)
     (setf (aref cups next-3)      (aref cups destination))
     (setf (aref cups destination) next-1)
@@ -113,37 +104,10 @@
     (setf (aref cups 7) 9)
     (setf (aref cups (1- len)) 5)
     (iter
-      (for i from 0 below 10)
-      (format t "(aref cups i): ~a~%" (aref cups i)))
-    (iter
-      (for i from (- len 10) below len)
-      (format t "(aref cups i): ~a~%" (aref cups i)))
-    ;; (format t "~a~%"
-    ;;         (iter
-    ;;           (with start = 0)
-    ;;           (for next = (aref cups start))
-    ;;           (format t "next: ~a~%" next)
-    ;;           (while (/= next 0))
-    ;;           (while (/= next 100))
-    ;;           (collecting (-> (format nil "~a" (1+ next)) (aref 0)) :result-type 'string)
-    ;;           (setf start next)))
-
-    (iter
-      ;; Change back!
       (with current-cup = 5)
       (repeat 10000000)
       (setf current-cup (make-move-2 current-cup cups len))
-      ;; (finally
-      ;;  (return
-      ;;    (iter
-      ;;      (with start = 0)
-      ;;      (for next = (aref cups start))
-      ;;      (while (/= next 0))
-      ;;      (collecting (-> (format nil "~a" (1+ next)) (aref 0)) :result-type 'string)
-      ;;      (setf start next))))
       (finally
        (return
-         (* (print (1+ (aref cups 0)))
-            (print (1+ (aref cups (aref cups 0)))))))
-      )
-    ))
+         (* (1+ (aref cups 0))
+            (1+ (aref cups (aref cups 0)))))))))
