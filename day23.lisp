@@ -100,7 +100,7 @@
     (aref cups current-cup)))
 
 (defun part-2 ()
-  (bind ((first-ordering (map 'vector #'identity '(2 7 8 0 1 4 3 5 6)))
+  (bind ((first-ordering (map 'vector #'identity '(5 3 2 6 0 8 1 4 7)))
          (len            1000000)
          (cups           (make-array (list len))))
     (iter
@@ -110,8 +110,8 @@
     (iter
       (for i from 9 below len)
       (setf (aref cups i) (1+ i)))
-    (setf (aref cups 6) 9)
-    (setf (aref cups (1- len)) 2)
+    (setf (aref cups 7) 9)
+    (setf (aref cups (1- len)) 5)
     (iter
       (for i from 0 below 10)
       (format t "(aref cups i): ~a~%" (aref cups i)))
@@ -130,7 +130,7 @@
 
     (iter
       ;; Change back!
-      (with current-cup = 2)
+      (with current-cup = 5)
       (repeat 10000000)
       (setf current-cup (make-move-2 current-cup cups len))
       ;; (finally
