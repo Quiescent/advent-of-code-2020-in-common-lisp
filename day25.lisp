@@ -33,7 +33,7 @@
     (declare (type (unsigned-byte 64) pub-key-1 pub-key-2 loop-size-1))
     (iter
       (for x from 2 below 1000000)
-      (with value = (the (unsigned-byte 64) 7))
+      (with value = 7)
       (declare (type (unsigned-byte 64) x value))
       (setf value (mod (* value 7)
                        (the (unsigned-byte 64) 20201227)))
